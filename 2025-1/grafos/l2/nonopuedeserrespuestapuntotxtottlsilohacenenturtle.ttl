@@ -1,0 +1,47 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+:hasSpouse a owl:SymmetricProperty .
+:engagedTo a owl:SymmetricProperty .
+
+# Definir la propiedad :hasParent y *deducir* que :Rhaenyra- :hasParent :Viseris-
+:hasChild owl:inverseOf :hasParent .
+
+# :ancestorOf
+:ancestorOf a owl:TransitiveProperty .
+:hasChild rdfs:subPropertyOf :ancestorOf .
+
+# :hasCousin
+:hasSibling a owl:SymmetricProperty, owl:IrreflexiveProperty .
+
+:hasSibling owl:propertyChainAxiom (
+    :hasParent
+    :hasChild
+) .
+
+:hasCousin owl:propertyChainAxiom (
+    :hasParent
+    :hasSibling 
+    :hasChild
+) .
+
+# :Targaryen is the same as being :memberOf :HouseTargaryen
+:Targaryen owl:equivalentClass :HouseTargaryen .
+
+# Everyone is Valyrian
+:Valyrian owl:equivalentClass [
+    owl:unionOf (
+        :HouseTargaryen
+        :HouseVelaryon
+        :HouseCeltigar
+    )
+] .
+
+# If not Valyrian then Andal
+:Andal owl:equivalentClass [owl:complementOf :Valyrian] .
+
+# :OnlyMarriesValyrians
+:OnlyMarriesValyrians rdfs:subClassOf [
+    owl:allValuesFrom :Valyrian ;
+    owl:onProperty :hasSpouse
+] .

@@ -1,0 +1,81 @@
+DATA 1:
+
+@prefix laureate: <http://data.nobelprize.org/resource/laureate/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+
+laureate:935
+    a                foaf:Person ;
+    foaf:birthday    "1948-10-09"^^xsd:date ;
+    foaf:familyName  "Hart" ;
+    foaf:givenName   "Oliver" ;
+    foaf:name        "Oliver Hart" ;
+    foaf:gender      "male" .
+
+SHAPE 1:
+
+@prefix ex: <http://example.org#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass foaf:Person ;
+    sh:property [
+       sh:path foaf:birthday ;
+       sh:datatype xsd:date ;
+    ] ;
+    sh:property [
+       sh:path foaf:givenName ;
+       sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+       sh:path foaf:name ;
+       sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+       sh:path foaf:familyName ;
+       sh:datatype xsd:string ;
+    ] .
+
+
+SHAPE 2:
+
+@prefix ex: <http://example.org#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix nobel: <http://data.nobelprize.org/terms/> .
+@prefix dbo:   <http://dbpedia.org/ontology/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dbp:   <http://dbpedia.org/property/> .
+
+ex:LaureateShape a sh:NodeShape ;
+    sh:targetClass nobel:Laureate ;
+	sh:property [
+      sh:path dbo:affiliation ;
+      sh:minCount 1 ;
+      sh:qualifiedValueShape [
+        sh:path rdf:type ;
+        sh:hasValue dbo:University ;
+      	] ;
+      sh:qualifiedMinCount 1 ;
+      ] ;
+	sh:or ( [
+      sh:property [
+    	sh:path dbp:dateOfBirth ;
+        sh:maxCount 0 ;
+    	]] 
+      [sh:property [
+        sh:path dbp:birthday ;
+        sh:maxCount 0;
+      ]] 
+      [sh:property [
+      	sh:path dbp:dateOfBirth ;
+        sh:equals dbp:birthday ;
+    	]]
+    )
+.

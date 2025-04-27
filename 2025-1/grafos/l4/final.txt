@@ -1,0 +1,186 @@
+# P1
+
+SELECT ?entidad ?entidadLabel WHERE {
+  ?entidad rdfs:label "Universidad de Chile"@es.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en". }
+}
+
+# P2
+
+SELECT
+  ?class
+  ?classLabel
+WHERE {
+  wd:Q232141
+    wdt:P31/wdt:P279* ?class .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en". }
+}
+
+
+# P3
+
+SELECT ?entidad ?entidadLabel (YEAR(?inceptionY) as ?y) WHERE {
+  
+  ?entidad 
+    wdt:P31/wdt:P279* wd:Q3918;    # instance/subclass of university
+    wdt:P571      ?inceptionY;      # inception date
+    wdt:P17/wdt:P30 wd:Q18 .        # country -> continent = South America
+  
+  wd:Q232141 wdt:P571 ?uchileInception .
+  
+  FILTER( YEAR(?inceptionY) < YEAR(?uchileInception) )
+  
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language "es,en" .
+  }
+}
+
+# P4
+
+SELECT DISTINCT  
+  ?alumnus   ?alumnusLabel
+  ?otherUni  ?otherUniLabel
+WHERE {
+  
+  ?alumnus wdt:P69 wd:Q232141 .
+  
+  ?otherUni 
+    wdt:P17 wd:Q298 ;
+    wdt:P31/wdt:P279* wd:Q3918 .
+  
+  ?alumnus wdt:P69 ?otherUni .
+  
+  FILTER( ?otherUni != wd:Q232141 )
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "es,en" .
+  }
+}
+
+# P5
+
+# SELECT 
+#   ?occupation 
+#   ?occupationLabel 
+#   (COUNT(?alumnus) AS ?count)
+# WHERE {
+#   
+#   ?alumnus wdt:P69 wd:Q232141 .
+#   
+#   ?otherUni 
+#     wdt:P17 wd:Q298 ;
+#     wdt:P31/wdt:P279* wd:Q3918 .
+#   
+#   ?alumnus wdt:P69 ?otherUni .
+#   
+#   FILTER( ?otherUni != wd:Q232141 )
+#   
+#   ?alumnus wdt:P106 ?occupation .
+#   
+#   SERVICE wikibase:label {
+#     bd:serviceParam wikibase:language "es,en" .
+#   }
+# }
+# GROUP BY ?occupation ?occupationLabel
+# ORDER BY DESC(?count)
+
+SELECT 
+  ?occupation ?occupationLabel 
+  (COUNT(?alumnus) AS ?count)
+WHERE {
+  ?alumnus wdt:P69 wd:Q232141 .
+  ?alumnus wdt:P106 ?occupation .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en". }
+}
+GROUP BY ?occupation ?occupationLabel
+ORDER BY DESC(?count)
+
+
+# P6
+
+SELECT 
+  ?persona 
+  ?personaLabel
+  ?role
+WHERE {
+  {
+    ?persona wdt:P69  wd:Q232141 .
+    BIND("estudiante" AS ?role)
+  }
+  UNION
+  {
+    ?persona wdt:P108 wd:Q232141 .
+    BIND("trabajador"  AS ?role)
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "es,en" .
+  }
+}
+  
+
+# P7
+
+SELECT
+  ?persona ?personaLabel
+  ?dateOfBirth #?dateOfBirthLabel
+  ?countryOfBirth ?countryOfBirthLabel
+WHERE {
+  
+  ?persona (wdt:P69|wdt:P108)  wd:Q232141 .
+   
+  OPTIONAL{
+    ?persona wdt:P569 ?dateOfBirth .
+  }
+  
+  OPTIONAL{
+    ?persona wdt:P19/wdt:P17 ?countryOfBirth .
+  }
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "es,en" .
+  }
+}
+
+# P8
+
+SELECT
+  ?persona
+  ?personaLabel
+  ?age ?avgAge
+WHERE {
+  {
+    SELECT 
+      ?persona 
+      (YEAR(NOW()) - YEAR(?dob) AS ?age)
+    WHERE {
+      ?persona
+        wdt:P69  wd:Q232141 ;
+        wdt:P569 ?dob .
+      OPTIONAL { ?persona wdt:P570 ?dod . }
+      FILTER(!BOUND(?dod))
+    }
+  }
+
+  {
+    SELECT (AVG(?age) AS ?avgAge)
+    WHERE {
+      {
+        SELECT (YEAR(NOW()) - YEAR(?dob) AS ?age)
+        WHERE {
+          ?persona
+            wdt:P69  wd:Q232141 ;
+            wdt:P569 ?dob .
+          OPTIONAL { ?persona wdt:P570 ?dod . }
+          FILTER(!BOUND(?dod))
+        }
+      }
+    }
+  }
+  
+  FILTER(?age > ?avgAge)
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "es,en" .
+  }
+}
+
